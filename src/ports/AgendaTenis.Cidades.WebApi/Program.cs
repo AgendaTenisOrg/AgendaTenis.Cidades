@@ -6,7 +6,15 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddSingleton<CidadesServico>();
+builder.Services.AddHttpClient();
+builder.Services.AddScoped<CidadesServico>();
+
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "AgendaTenis.Municipios";
+});
+
 
 var app = builder.Build();
 

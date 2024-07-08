@@ -1,44 +1,49 @@
-﻿using AgendaTenis.Cidades.WebApi.DTOs;
-using AgendaTenis.Cidades.WebApi.Utils;
+﻿using AgendaTenis.Cache.Core;
+using AgendaTenis.Cidades.WebApi.DTOs;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Runtime;
 using System.Text.Json;
 
 namespace AgendaTenis.Cidades.WebApi.Servicos;
 
 public class CidadesServico
 {
-    private IEnumerable<CidadeDto> _cidades;
-    private object _lock = new object();
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IDistributedCache _cache;
 
-    public IEnumerable<CidadeDto> ObterCidadesPorPadrao(string parteNome, int page, int itemsPerPage)
+    public CidadesServico(
+        IHttpClientFactory httpClientFactory, 
+        IDistributedCache cache)
     {
-        var cidades = this.CarregarCidades();
-
-        if (!string.IsNullOrEmpty(parteNome))
-        {
-            var parteNomeNormalizado = TextoUtils.Normalizar(parteNome);
-            cidades = cidades.Where(c => TextoUtils.Normalizar(c.Nome).Contains(parteNomeNormalizado));
-        }
-
-        var cidadesPaginado = cidades.Skip((page - 1) * itemsPerPage).Take(itemsPerPage);
-
-        return cidadesPaginado;
+        _httpClientFactory = httpClientFactory;
+        _cache = cache;
     }
 
-    private IEnumerable<CidadeDto> CarregarCidades()
+    public async Task<IEnumerable<MunicipioDto>> Obter(string parteNome, int pagina, int itensPorPagina)
     {
-        if (_cidades is null)
-        {
-            lock (_lock)
-            {
-                if (_cidades is null)
-                {
-                    var jsonData = File.ReadAllText("city.list.json");
+        var skip = (pagina - 1) * itensPorPagina;
 
-                    _cidades = JsonSerializer.Deserialize<IEnumerable<CidadeDto>>(jsonData);
-                }
+        string cacheKey = $"municipios";
+
+        var municipios = await _cache.GetRecordAsync<List<MunicipioDto>>(cacheKey);
+
+        if (municipios is null)
+        {
+            using (var httpClient = _httpClientFactory.CreateClient())
+            {
+                var url = $"https://servicodados.ibge.gov.br/api/v1/localidades/municipios";
+
+                municipios = await httpClient.GetFromJsonAsync<List<MunicipioDto>>(url, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+                var tempoAbsolutoDeExpiracao = TimeSpan.FromDays(1);
+
+                await _cache.SetRecordAsync(cacheKey, municipios);
             }
         }
 
-        return _cidades;
+        return municipios
+           .Where(c => c.Nome.Contains(parteNome, StringComparison.OrdinalIgnoreCase))
+           .Skip(skip)
+           .Take(itensPorPagina);
     }
 }

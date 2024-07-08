@@ -8,9 +8,9 @@ namespace AgendaTenis.Cidades.WebApi.Controllers;
 public class CidadesController : ControllerBase
 {
     [HttpGet]
-    public async Task<IActionResult> ObterPorPadrao([FromServices] CidadesServico servico, string parteNome, int page, int itemsPerPage)
+    public async Task<IActionResult> ObterCidadesPaginado([FromServices] CidadesServico servico, string parteNome, int page, int itemsPerPage)
     {
-        var cidades = servico.ObterCidadesPorPadrao(parteNome, page, itemsPerPage);
+        var cidades = await servico.Obter(parteNome, page, itemsPerPage);
 
         return Ok(cidades);
     }
