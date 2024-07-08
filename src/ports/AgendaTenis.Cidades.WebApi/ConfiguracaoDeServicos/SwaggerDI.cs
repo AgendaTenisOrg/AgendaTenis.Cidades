@@ -4,35 +4,34 @@ namespace AgendaTenis.Cidades.WebApi.ConfiguracaoDeServicos;
 
 public static class SwaggerDI
 {
-    public static void RegistrarSwagger(this IServiceCollection services)
+    public static void AdicionarConfiguracaoSwagger(this IServiceCollection services)
     {
-        services.AddSwaggerGen(c =>
+        services.AddSwaggerGen(option =>
         {
-            c.SwaggerDoc("v1", new OpenApiInfo { Title = "Minha API", Version = "v1" });
-
-            c.AddSecurityDefinition("ApiKey", new OpenApiSecurityScheme
-                {
-                    In = ParameterLocation.Header,
-                    Name = "Chave",
-                    Type = SecuritySchemeType.ApiKey,
-                    Description = "Chave secreta para autenticação"
-                });
-
-            c.AddSecurityRequirement(new OpenApiSecurityRequirement
+            option.SwaggerDoc("v1", new OpenApiInfo { Title = "Cidades Web API", Version = "v1" });
+            option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
             {
-                {
-                    new OpenApiSecurityScheme
-                    {
-                        Reference = new OpenApiReference
-                        {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "ApiKey"
-                        },
-                        In = ParameterLocation.Header
-                    },
-                    new string[] {}
-                }
+                In = ParameterLocation.Header,
+                Description = "Insira um token jwt válido",
+                Name = "Autorização JWT",
+                Type = SecuritySchemeType.Http,
+                BearerFormat = "JWT",
+                Scheme = "Bearer"
             });
+            option.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type=ReferenceType.SecurityScheme,
+                                Id="Bearer"
+                            }
+                        },
+                        new string[]{}
+                    }
+                });
         });
     }
 }

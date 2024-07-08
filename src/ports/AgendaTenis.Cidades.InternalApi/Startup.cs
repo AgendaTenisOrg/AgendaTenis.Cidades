@@ -1,7 +1,8 @@
-﻿using AgendaTenis.Cidades.WebApi.ConfiguracaoDeServicos;
-using AgendaTenis.Partidas.WebApi.ConfiguracaoDeServicos;
+﻿using AgendaTenis.Cidades.Core.Servicos;
+using AgendaTenis.Cidades.InternalApi.ConfiguracaoDeServicos;
+using AgendaTenis.Cidades.InternalApi.Middlewares;
 
-namespace AgendaTenis.Cidades.WebApi;
+namespace AgendaTenis.Cidades.InternalApi;
 
 public class Startup
 {
@@ -17,7 +18,7 @@ public class Startup
         services.AddControllers();
         services.AddEndpointsApiExplorer();
 
-        services.AdicionarConfiguracaoSwagger();
+        services.RegistrarSwagger();
 
 
         services.AddStackExchangeRedisCache(options =>
@@ -27,7 +28,6 @@ public class Startup
         });
 
         services.AdicionarCidadeServico(Configuration);
-        services.AdicionarAutenticacaoJWT(Configuration);
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -42,8 +42,7 @@ public class Startup
 
         app.UseRouting();
 
-        app.UseAuthentication();
-        app.UseAuthorization();
+        app.UseMiddleware<AutenticacaoMiddleware>();
 
         app.UseEndpoints(endpoints =>
         {

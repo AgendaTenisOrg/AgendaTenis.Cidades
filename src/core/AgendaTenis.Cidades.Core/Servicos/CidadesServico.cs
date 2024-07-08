@@ -1,9 +1,10 @@
 ﻿using AgendaTenis.Cache.Core;
-using AgendaTenis.Cidades.WebApi.DTOs;
+using AgendaTenis.Cidades.Core.DTOs;
 using Microsoft.Extensions.Caching.Distributed;
+using System.Net.Http.Json;
 using System.Text.Json;
 
-namespace AgendaTenis.Cidades.WebApi.Servicos;
+namespace AgendaTenis.Cidades.Core.Servicos;
 
 public class CidadesServico
 {
@@ -16,12 +17,16 @@ public class CidadesServico
         _cache = cache;
     }
 
-    public async Task<IEnumerable<CidadeDto>> Obter(string parteNome, int pagina, int itensPorPagina)
+    public async Task<IEnumerable<CidadeDto>> Obter(int pagina, int itensPorPagina, string parteNome)
     {
         var cidades = await ObterCidades();
 
+        if (!string.IsNullOrEmpty(parteNome))
+        {
+            cidades = cidades.Where(c => c.Nome.Contains(parteNome, StringComparison.OrdinalIgnoreCase));
+        }
+
         return cidades
-           .Where(c => c.Nome.Contains(parteNome, StringComparison.OrdinalIgnoreCase))
            .Skip((pagina - 1) * itensPorPagina)
            .Take(itensPorPagina);
     }

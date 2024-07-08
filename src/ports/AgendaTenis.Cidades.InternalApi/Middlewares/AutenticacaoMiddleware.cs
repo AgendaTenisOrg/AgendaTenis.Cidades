@@ -1,4 +1,4 @@
-﻿namespace AgendaTenis.Cidades.WebApi.Middlewares;
+﻿namespace AgendaTenis.Cidades.InternalApi.Middlewares;
 
 public class AutenticacaoMiddleware
 {

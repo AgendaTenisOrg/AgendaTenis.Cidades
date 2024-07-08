@@ -1,4 +1,4 @@
-﻿namespace AgendaTenis.Cidades.WebApi.DTOs;
+﻿namespace AgendaTenis.Cidades.Core.DTOs;
 
 public class CidadeDto
 {

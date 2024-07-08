@@ -1,6 +1,6 @@
 ﻿using AgendaTenis.Cidades.Core.Servicos;
 
-namespace AgendaTenis.Cidades.WebApi.ConfiguracaoDeServicos;
+namespace AgendaTenis.Cidades.InternalApi.ConfiguracaoDeServicos;
 
 public static class CidadeServicoDI
 {
