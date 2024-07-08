@@ -20,8 +20,23 @@ public class CidadesServico
 
     public async Task<IEnumerable<CidadeDto>> Obter(string parteNome, int pagina, int itensPorPagina)
     {
-        var skip = (pagina - 1) * itensPorPagina;
+        var cidades = await ObterCidades();
 
+        return cidades
+           .Where(c => c.Nome.Contains(parteNome, StringComparison.OrdinalIgnoreCase))
+           .Skip((pagina - 1) * itensPorPagina)
+           .Take(itensPorPagina);
+    }
+
+    public async Task<bool> VerificarSeCidadeExiste(int idCidade)
+    {
+        var cidades = await ObterCidades();
+
+        return cidades.Any(c => c.Id == idCidade); 
+    }
+
+    private async Task<IEnumerable<CidadeDto>> ObterCidades()
+    {
         string cacheKey = $"cidades";
 
         var cidades = await _cache.GetRecordAsync<List<CidadeDto>>(cacheKey);
@@ -34,15 +49,10 @@ public class CidadesServico
 
                 cidades = await httpClient.GetFromJsonAsync<List<CidadeDto>>(url, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-                var tempoAbsolutoDeExpiracao = TimeSpan.FromDays(1);
-
-                await _cache.SetRecordAsync(cacheKey, cidades);
+                await _cache.SetRecordAsync(cacheKey, cidades, TimeSpan.FromDays(1));
             }
         }
 
-        return cidades
-           .Where(c => c.Nome.Contains(parteNome, StringComparison.OrdinalIgnoreCase))
-           .Skip(skip)
-           .Take(itensPorPagina);
+        return cidades;
     }
 }
