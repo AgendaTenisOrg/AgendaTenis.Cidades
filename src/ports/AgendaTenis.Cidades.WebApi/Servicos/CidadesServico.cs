@@ -1,7 +1,6 @@
 ﻿using AgendaTenis.Cache.Core;
 using AgendaTenis.Cidades.WebApi.DTOs;
 using Microsoft.Extensions.Caching.Distributed;
-using System.Runtime;
 using System.Text.Json;
 
 namespace AgendaTenis.Cidades.WebApi.Servicos;
@@ -19,29 +18,29 @@ public class CidadesServico
         _cache = cache;
     }
 
-    public async Task<IEnumerable<MunicipioDto>> Obter(string parteNome, int pagina, int itensPorPagina)
+    public async Task<IEnumerable<CidadeDto>> Obter(string parteNome, int pagina, int itensPorPagina)
     {
         var skip = (pagina - 1) * itensPorPagina;
 
-        string cacheKey = $"municipios";
+        string cacheKey = $"cidades";
 
-        var municipios = await _cache.GetRecordAsync<List<MunicipioDto>>(cacheKey);
+        var cidades = await _cache.GetRecordAsync<List<CidadeDto>>(cacheKey);
 
-        if (municipios is null)
+        if (cidades is null)
         {
             using (var httpClient = _httpClientFactory.CreateClient())
             {
                 var url = $"https://servicodados.ibge.gov.br/api/v1/localidades/municipios";
 
-                municipios = await httpClient.GetFromJsonAsync<List<MunicipioDto>>(url, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+                cidades = await httpClient.GetFromJsonAsync<List<CidadeDto>>(url, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
                 var tempoAbsolutoDeExpiracao = TimeSpan.FromDays(1);
 
-                await _cache.SetRecordAsync(cacheKey, municipios);
+                await _cache.SetRecordAsync(cacheKey, cidades);
             }
         }
 
-        return municipios
+        return cidades
            .Where(c => c.Nome.Contains(parteNome, StringComparison.OrdinalIgnoreCase))
            .Skip(skip)
            .Take(itensPorPagina);

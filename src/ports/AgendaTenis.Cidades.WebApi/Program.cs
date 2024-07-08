@@ -12,7 +12,7 @@ builder.Services.AddScoped<CidadesServico>();
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    options.InstanceName = "AgendaTenis.Municipios";
+    options.InstanceName = "AgendaTenis.Cidades";
 });
 
 
