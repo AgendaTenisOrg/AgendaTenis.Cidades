@@ -15,11 +15,11 @@ public class CidadesController : ControllerBase
         return Ok(cidades);
     }
 
-    [HttpGet("existe")]
-    public async Task<IActionResult> VerificarSeCidadeExiste([FromServices] CidadesServico servico, int idCidade)
+    [HttpGet("obter/{id}")]
+    public async Task<IActionResult> ObterPorId([FromServices] CidadesServico servico, [FromRoute] int id)
     {
-        var existe = await servico.VerificarSeCidadeExiste(idCidade);
+        var cidades = await servico.ObterPorId(id);
 
-        return Ok(existe);
+        return Ok(cidades);
     }
 }

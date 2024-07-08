@@ -7,14 +7,12 @@ namespace AgendaTenis.Cidades.WebApi.Servicos;
 
 public class CidadesServico
 {
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly HttpClient _httpClient;
     private readonly IDistributedCache _cache;
 
-    public CidadesServico(
-        IHttpClientFactory httpClientFactory, 
-        IDistributedCache cache)
+    public CidadesServico(HttpClient httpClient, IDistributedCache cache)
     {
-        _httpClientFactory = httpClientFactory;
+        _httpClient = httpClient;
         _cache = cache;
     }
 
@@ -28,11 +26,13 @@ public class CidadesServico
            .Take(itensPorPagina);
     }
 
-    public async Task<bool> VerificarSeCidadeExiste(int idCidade)
+    public async Task<CidadeDto> ObterPorId(int id)
     {
+        // Pode parecer muito custoso obter todas as cidades para depois filtrar por Id, mas na verdade o método ObterCidades é otimizado para obter as cidades uma única vez e armazenar em cache.
+        // Com isso, essa operação tem boa performance.
         var cidades = await ObterCidades();
 
-        return cidades.Any(c => c.Id == idCidade); 
+        return cidades.FirstOrDefault(c => c.Id == id);
     }
 
     private async Task<IEnumerable<CidadeDto>> ObterCidades()
@@ -43,14 +43,9 @@ public class CidadesServico
 
         if (cidades is null)
         {
-            using (var httpClient = _httpClientFactory.CreateClient())
-            {
-                var url = $"https://servicodados.ibge.gov.br/api/v1/localidades/municipios";
+            cidades = await _httpClient.GetFromJsonAsync<List<CidadeDto>>($"municipios", new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-                cidades = await httpClient.GetFromJsonAsync<List<CidadeDto>>(url, new JsonSerializerOptions(JsonSerializerDefaults.Web));
-
-                await _cache.SetRecordAsync(cacheKey, cidades, TimeSpan.FromDays(1));
-            }
+            await _cache.SetRecordAsync(cacheKey, cidades, TimeSpan.FromDays(1));
         }
 
         return cidades;
