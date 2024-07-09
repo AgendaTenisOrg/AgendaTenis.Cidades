@@ -44,13 +44,13 @@ public class CidadesServico
     {
         string cacheKey = $"cidades";
 
-        var cidades = await _cache.GetRecordAsync<List<CidadeDto>>(cacheKey);
+        var cidades = await _cache.GetRecordAsync<List<CidadeDto>>(cacheKey, lancarException: false);
 
         if (cidades is null)
         {
             cidades = await _httpClient.GetFromJsonAsync<List<CidadeDto>>($"municipios", new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-            await _cache.SetRecordAsync(cacheKey, cidades, TimeSpan.FromDays(1));
+            await _cache.SetRecordAsync(cacheKey, cidades, TimeSpan.FromDays(1), lancarException: false);
         }
 
         return cidades;
